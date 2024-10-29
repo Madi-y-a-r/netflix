@@ -6,8 +6,7 @@ import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 
-
-const Auth = () =>{
+const Auth = () => {
 
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
@@ -19,33 +18,42 @@ const Auth = () =>{
         setVariant((currentVariant) => currentVariant === 'login' ? 'register' : 'login');
     }, []);
 
-    const login = useCallback(async() => {
+    const login = useCallback(async () => {
         try {
-            await signIn('credentials', {
+            const result = await signIn('credentials', {
                 email,
                 password,
+                redirect: false, // чтобы обработать результат вручную
                 callbackUrl: '/profiles'
-            })
-        }catch(error) {
-            console.log(error)
+            });
+
+            if (result?.error) {
+                alert(`Login failed: ${result.error}`);
+            } else {
+                window.location.href = '/profiles'; // перенаправление при успешном входе
+            }
+
+        } catch (error) {
+            alert("An unexpected error occurred during login. Please try again.");
+            console.error(error);
         }
     }, [email, password]);
 
-    const register = useCallback(async() => {
-        try {   
-            await axios.post('/api/register',{
-                email,
-                name,
-                password
-            });
-            login();
-        }catch (error) {
-            console.log(error);
+    const register = useCallback(async () => {
+        try {
+            await axios.post('/api/register', { email, name, password });
+            await login(); // если регистрация успешна, выполним вход
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 422) {
+                alert('A user with this email already exists.');
+            } else {
+                alert("An unexpected error occurred during registration. Please try again.");
+            }
+            console.error(error);
         }
     }, [email, name, password, login]);
 
-
-    return(
+    return (
         <div className="revative h-full w-full bg-[url('/images/hero.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">
             <div className="bg-black w-full h-full lg:bg-opacity-50">
                 <nav className="px-12 py-5">
@@ -57,24 +65,24 @@ const Auth = () =>{
                             {variant === 'login' ? 'Sign in' : 'Register'}
                         </h2>
                         <div className="flex flex-col gap-4">
-                            {variant === 'register' &&(
-                                <Input 
+                            {variant === 'register' && (
+                                <Input
                                     label="Username"
-                                    onChange={(ev: any)=>setName(ev.target.value)}
+                                    onChange={(ev: any) => setName(ev.target.value)}
                                     id="name"
                                     value={name}
                                 />
                             )}
-                            <Input 
+                            <Input
                                 label="Email"
-                                onChange={(ev: any)=>setEmail(ev.target.value)}
+                                onChange={(ev: any) => setEmail(ev.target.value)}
                                 id="email"
                                 type="email"
                                 value={email}
                             />
-                            <Input 
+                            <Input
                                 label="Password"
-                                onChange={(ev: any)=>setPassword(ev.target.value)}
+                                onChange={(ev: any) => setPassword(ev.target.value)}
                                 id="password"
                                 type="password"
                                 value={password}
@@ -85,38 +93,38 @@ const Auth = () =>{
                         </button>
                         <div className="flex flex-row items-center gap-4 mt-8 justify-center">
                             <div
-                            onClick={() => signIn('google',{callbackUrl: '/profiles'})}
-                            className="
-                                w-10
-                                h-10
-                                bg-white
-                                rounded-full
-                                flex
-                                items-center
-                                justify-center
-                                cursor-pointer
-                                hover: opacity-80
-                                transition
-                            "
+                                onClick={() => signIn('google', { callbackUrl: '/profiles' })}
+                                className="
+                                    w-10
+                                    h-10
+                                    bg-white
+                                    rounded-full
+                                    flex
+                                    items-center
+                                    justify-center
+                                    cursor-pointer
+                                    hover: opacity-80
+                                    transition
+                                "
                             >
-                                <FcGoogle size={30}/>
+                                <FcGoogle size={30} />
                             </div>
                             <div
-                            onClick={() => signIn('github',{callbackUrl: '/profiles'})}
-                            className="
-                                w-10
-                                h-10
-                                bg-white
-                                rounded-full
-                                flex
-                                items-center
-                                justify-center
-                                cursor-pointer
-                                hover: opacity-80
-                                transition
-                            "
+                                onClick={() => signIn('github', { callbackUrl: '/profiles' })}
+                                className="
+                                    w-10
+                                    h-10
+                                    bg-white
+                                    rounded-full
+                                    flex
+                                    items-center
+                                    justify-center
+                                    cursor-pointer
+                                    hover: opacity-80
+                                    transition
+                                "
                             >
-                                <FaGithub size={30}/>
+                                <FaGithub size={30} />
                             </div>
                         </div>
                         <p className="text-neutral-400 mt-12">

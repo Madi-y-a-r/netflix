@@ -6,6 +6,9 @@ import prismadb from '@/lib/prismadb'
 const serverAuth = async(req: NextApiRequest) => {
     const session = await getSession({ req });
 
+    console.log("SESSION:", session);
+    console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET);
+    console.log("GITHUB_ID:", process.env.GITHUB_ID);
     if (!session?.user?.email) {
         throw new Error('Not signed in');
     }
